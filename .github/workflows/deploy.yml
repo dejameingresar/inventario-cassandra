@@ -14,6 +14,7 @@ jobs:
           HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
         run: |
           if [ -z "$HOOK" ]; then
-            echo "Falta el secreto RENDER_DEPLOY_HOOK"; exit 1
+            echo "::notice::Sin RENDER_DEPLOY_HOOK configurado; se omite el despliegue."
+            exit 0
           fi
           curl -fsSL -X POST "$HOOK"
