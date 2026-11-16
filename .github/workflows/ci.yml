@@ -1,0 +1,31 @@
+name: ci
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - run: npm install
+      - name: Levantar Cassandra
+        run: |
+          docker run -d --name cassandra -p 9042:9042 cassandra:5
+          for i in $(seq 1 40); do
+            if docker exec cassandra cqlsh -e "describe keyspaces" >/dev/null 2>&1; then break; fi
+            sleep 10
+          done
+      - name: Crear esquema
+        run: docker exec -i cassandra cqlsh < db/schema.cql && docker exec -i cassandra cqlsh < db/seed.cql
+      - name: Arrancar API y probar
+        env:
+          CASSANDRA_CONTACT_POINTS: 127.0.0.1
+        run: |
+          node src/server.js &
+          sleep 8
+          curl -sf http://localhost:3000/health
+          curl -sf http://localhost:3000/productos/laptops

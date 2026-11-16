@@ -1,0 +1,17 @@
+{
+  "name": "inventario-cassandra-api",
+  "version": "1.0.0",
+  "description": "API de inventario sobre Apache Cassandra (DataStax Astra DB) - SI783 U2",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "seed": "node src/seed.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "cassandra-driver": "^4.7.2",
+    "express": "^4.19.2"
+  },
+  "engines": { "node": ">=20" }
+}

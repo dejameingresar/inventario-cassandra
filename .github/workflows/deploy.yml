@@ -1,0 +1,19 @@
+name: deploy
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["build-image"]
+    types: [completed]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Desplegar en Render
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "Falta el secreto RENDER_DEPLOY_HOOK"; exit 1
+          fi
+          curl -fsSL -X POST "$HOOK"
