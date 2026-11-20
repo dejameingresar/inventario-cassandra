@@ -7,6 +7,20 @@ app.use(express.json());
 const client = buildClient();
 const TABLE = "productos_por_categoria";
 
+app.get("/", (_req, res) => {
+  res.json({
+    service: "Inventario Cassandra API",
+    database: "Apache Cassandra",
+    repository: "https://github.com/dejameingresar/inventario-cassandra",
+    endpoints: [
+      "GET /health",
+      "GET /productos/:categoria",
+      "PUT /productos/:categoria/:id",
+      "DELETE /productos/:categoria/:id",
+    ],
+  });
+});
+
 app.get("/health", async (_req, res) => {
   try {
     await client.execute("SELECT now() FROM system.local");
