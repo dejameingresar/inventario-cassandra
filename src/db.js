@@ -1,4 +1,7 @@
 const cassandra = require("cassandra-driver");
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
 
 const TABLE = "productos_por_categoria";
 
@@ -85,10 +88,16 @@ function buildMemoryClient() {
 }
 
 function buildClient() {
-  const secureBundle = process.env.ASTRA_BUNDLE_PATH;
   const username = process.env.ASTRA_CLIENT_ID;
   const password = process.env.ASTRA_CLIENT_SECRET;
   const keyspace = process.env.ASTRA_KEYSPACE || "inventario";
+
+  // En PaaS no se puede montar un archivo secreto; el bundle viaja en base64.
+  let secureBundle = process.env.ASTRA_BUNDLE_PATH;
+  if (!secureBundle && process.env.ASTRA_BUNDLE_BASE64) {
+    secureBundle = path.join(os.tmpdir(), "secure-connect.zip");
+    fs.writeFileSync(secureBundle, Buffer.from(process.env.ASTRA_BUNDLE_BASE64, "base64"));
+  }
 
   if (secureBundle) {
     const client = new cassandra.Client({
