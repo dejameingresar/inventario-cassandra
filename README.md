@@ -31,26 +31,34 @@ docker compose up api
 curl http://localhost:3000/health
 ```
 
-## Producción (Astra DB)
+## Modo público (lo que necesitas hacer tú)
 
-1. Crear una base **Astra DB Serverless** (free tier) y descargar el *Secure Connect Bundle*.
-2. Crear un rol/token con permiso sobre el keyspace `inventario`.
-3. Variables de entorno:
+La API ya está preparada para los dos entornos: `src/db.js` decide entre el modo local y el de Astra DB según exista `ASTRA_BUNDLE_PATH`. No hay que cambiar código. Estos son los pasos que faltan, y se ejecutan fuera del repositorio.
+
+1. Crear una base **Astra DB Serverless**, plan gratuito, en https://astra.datastax.com.
+2. Descargar el *Secure Connect Bundle* (un `.zip`) de esa base.
+3. Crear un token de aplicación: te da `Client ID` y `Client Secret` con permiso sobre el keyspace `inventario`.
+4. Abrir el `CQL Console` de Astra y ejecutar el contenido de `db/schema.cql` (crea el keyspace y la tabla `productos_por_categoria`).
+5. Configurar estas cuatro variables de entorno en el servicio donde corre la API:
 
 ```
 ASTRA_BUNDLE_PATH=/secrets/secure-connect.zip
-ASTRA_CLIENT_ID=...
-ASTRA_CLIENT_SECRET=...
+ASTRA_CLIENT_ID=<client_id>
+ASTRA_CLIENT_SECRET=<secret>
 ASTRA_KEYSPACE=inventario
 ```
 
-4. Ejecutar `db/schema.cql` en el CQL console de Astra y desplegar la imagen publicada en GHCR.
+El bundle `.zip` se sube como archivo secreto y se monta en esa ruta. Sin esas variables el driver intenta conectarse a `127.0.0.1` y `/health` responde `500`.
+
+6. Para que el despliegue sea automático, registrar el secreto `RENDER_DEPLOY_HOOK` en el repositorio. El workflow `deploy.yml` llama a ese hook; hoy, si no está, omite el paso y sale en verde sin desplegar.
+
+Las credenciales no se pegan en el repositorio: se ponen directamente en el panel de Astra y en el panel del proveedor donde se publique la API.
 
 ## Despliegue automatizado
 
 - `.github/workflows/ci.yml`: levanta Cassandra real, aplica el esquema y prueba la API.
 - `.github/workflows/build-image.yml`: construye y publica la imagen en `ghcr.io`.
-- `.github/workflows/deploy.yml`: dispara el despliegue en Render mediante `RENDER_DEPLOY_HOOK`.
+- `.github/workflows/deploy.yml`: dispara el despliegue en Render mediante `RENDER_DEPLOY_HOOK`; si el secreto no existe, omite el paso.
 
 ## Por qué Cassandra y no otra NoSQL
 
