@@ -24,7 +24,7 @@ app.get("/", (_req, res) => {
 app.get("/health", async (_req, res) => {
   try {
     await client.execute("SELECT now() FROM system.local");
-    res.json({ status: "ok", db: "cassandra" });
+    res.json({ status: "ok", db: client.mode || "cassandra" });
   } catch (e) {
     res.status(500).json({ status: "error", message: e.message });
   }
