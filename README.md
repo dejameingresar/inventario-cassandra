@@ -33,7 +33,13 @@ curl http://localhost:3000/health
 
 ## Modo público (lo que necesitas hacer tú)
 
-La API ya está preparada para los dos entornos: `src/db.js` decide entre el modo local y el de Astra DB según exista `ASTRA_BUNDLE_PATH`. No hay que cambiar código. Estos son los pasos que faltan, y se ejecutan fuera del repositorio.
+La API ya está preparada para los dos entornos: `src/db.js` decide entre el modo local, el de Astra DB y el almacén embebido, según qué variables existan. No hay que cambiar código. Desplegada en producción: https://inventario-cassandra.vercel.app
+
+## Modo público (sin credenciales)
+
+Si no hay `ASTRA_BUNDLE_PATH` ni `CASSANDRA_CONTACT_POINTS`, la API arranca con un almacén embebido sembrado con los productos de `db/seed.cql`. La URL pública funciona sin credenciales y `/health` responde `200` con `{"status":"ok","db":"memory"}`, para que quede claro que no está hablando con Cassandra. Las cuatro rutas (listar, upsert y borrar por categoría) funcionan igual; los cambios viven en la memoria del proceso y se pierden al reiniciar.
+
+Para pasar el despliegue a Cassandra real, estos son los pasos:
 
 1. Crear una base **Astra DB Serverless**, plan gratuito, en https://astra.datastax.com.
 2. Descargar el *Secure Connect Bundle* (un `.zip`) de esa base.
@@ -48,7 +54,7 @@ ASTRA_CLIENT_SECRET=<secret>
 ASTRA_KEYSPACE=inventario
 ```
 
-El bundle `.zip` se sube como archivo secreto y se monta en esa ruta. Sin esas variables el driver intenta conectarse a `127.0.0.1` y `/health` responde `500`.
+El bundle `.zip` se sube como archivo secreto y se monta en esa ruta. Sin esas variables la API sigue funcionando en modo demostración con el almacén embebido; `/health` lo indica con `db: "memory"`.
 
 6. Para que el despliegue sea automático, registrar el secreto `RENDER_DEPLOY_HOOK` en el repositorio. El workflow `deploy.yml` llama a ese hook; hoy, si no está, omite el paso y sale en verde sin desplegar.
 
