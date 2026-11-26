@@ -54,7 +54,7 @@ ASTRA_CLIENT_SECRET=<secret>
 ASTRA_KEYSPACE=inventario
 ```
 
-El bundle `.zip` se sube como archivo secreto y se monta en esa ruta. Sin esas variables la API sigue funcionando en modo demostración con el almacén embebido; `/health` lo indica con `db: "memory"`.
+El bundle `.zip` se sube como archivo secreto y se monta en esa ruta; en Vercel se pasa como `ASTRA_BUNDLE_BASE64` y `src/db.js` lo materializa en `/tmp`. Sin esas variables la API sigue funcionando en modo demostración con el almacén embebido; `/health` lo indica con `db: "memory"`.
 
 6. Para que el despliegue sea automático, registrar el secreto `RENDER_DEPLOY_HOOK` en el repositorio. El workflow `deploy.yml` llama a ese hook; hoy, si no está, omite el paso y sale en verde sin desplegar.
 
